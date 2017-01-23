@@ -1,0 +1,17 @@
+{
+  "author": "Simon Fridlund <simon@fridlund.email>",
+  "bugs": {
+    "url": "https://github.com/meteor-activeroute/blaze/issues"
+  },
+  "description": "Blaze helpers for activeroute:core",
+  "homepage": "https://github.com/meteor-activeroute/blaze#readme",
+  "license": "MIT",
+  "main": "package.js",
+  "name": "meteor-activeroute-blaze",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/meteor-activeroute/blaze.git"
+  },
+  "version": "0.1.0"
+}
