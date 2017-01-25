@@ -14,4 +14,6 @@ Package.onUse(function onUse(api) {
     'ecmascript',
     'templating',
   ]);
+
+  api.mainModule('client/helpers.js', 'client', { lazy: true });
 });
