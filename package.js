@@ -10,7 +10,6 @@ Package.onUse(function onUse(api) {
   api.versionsFrom('1.4.2.2');
 
   api.use([
-    'check',
     'ecmascript',
     'templating',
   ]);
