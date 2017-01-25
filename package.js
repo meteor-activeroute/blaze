@@ -10,8 +10,8 @@ Package.onUse(function onUse(api) {
   api.versionsFrom('1.4.2.2');
 
   api.use([
+    'blaze',
     'ecmascript',
-    'templating',
   ]);
 
   api.mainModule('client/helpers.js', 'client', { lazy: true });
