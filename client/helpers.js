@@ -31,7 +31,7 @@ export function createTemplateHelpers({
         };
       }
 
-      options = { ...attributes, ...options };
+      options = { ...options, ...attributes };
 
       const { path } = options;
       let { regex } = options;
@@ -70,7 +70,7 @@ export function createTemplateHelpers({
         };
       }
 
-      options = { ...attributes, ...options };
+      options = { ...options, ...attributes };
 
       const { regex, path } = options;
 
