@@ -3,6 +3,79 @@ import { Spacebars } from 'meteor/spacebars';
 import { Template } from 'meteor/templating';
 import ActiveRouteBlazeError from './error';
 
+function addHelper(helpers, helper) {
+  return { ...helpers, ...helper };
+}
+
+function createHelper([helperName, { activeRoute, caseSensitive, className, inverse, type }]) {
+  return {
+    [helperName](options = {}, attributes = {}) {
+      if (options instanceof Spacebars.kw) {
+        options = options.hash;
+      }
+
+      if (attributes instanceof Spacebars.kw) {
+        attributes = attributes.hash;
+      }
+
+      if (typeof options === 'string') {
+        options = {
+          [type]: options,
+        };
+      }
+
+      options = { ...options, ...attributes };
+
+      let { regex } = options;
+      const value = options[type];
+
+      className = options.class || options.className || className;
+
+      if (typeof regex === 'string' && caseSensitive) {
+        regex = new RegExp(regex);
+      } else if (typeof regex === 'string') {
+        regex = new RegExp(regex, 'i');
+      }
+
+      if (className && typeof className !== 'string') {
+        const classAttribute = options.class ? 'class' : 'className';
+        throw new ActiveRouteBlazeError(`Invalid argument, ${classAttribute} expected to be of type string.`);
+      } else if (regex && !(regex instanceof RegExp)) {
+        throw new ActiveRouteBlazeError('Invalid argument, regex expected to be of type RegExp.');
+      } else if (value && typeof value !== 'string') {
+        throw new ActiveRouteBlazeError(`Invalid argument, ${type} expected to be of type string.`);
+      } else if (!value && !regex) {
+        throw new ActiveRouteBlazeError(`Invalid arguments, ${helperName} expects "string", ${type}="string", regex="string" or regex=/regex/`);
+      }
+
+      const {
+        class: _c,
+        className: _cn,
+        data: _d,
+        regex: _r,
+        name: _n,
+        path: _p,
+        ...params
+      } = {
+        ...attributes.data,
+        ...attributes,
+      };
+
+      let result = activeRoute[type]({
+        params,
+        regex,
+        [type]: value,
+      });
+
+      if (inverse) {
+        result = !result;
+      }
+
+      return result ? className : false;
+    },
+  };
+}
+
 function getHelperArguments({ attributes, options }) {
   if (options instanceof Spacebars.kw) {
     options = options.hash;
@@ -21,125 +94,39 @@ export function createTemplateHelpers({
   caseSensitive = false,
   disabledClassName = 'disabled',
 }) {
-  return {
-    isActivePath(options = {}, attributes = {}) {
-      ({ attributes, options } = getHelperArguments({ attributes, options }));
+  let helperOptions = {
+    activeRoute,
+    caseSensitive,
+  };
 
-      if (typeof options === 'string') {
-        options = {
-          path: options,
-        };
-      }
-
-      options = { ...options, ...attributes };
-
-      const { path } = options;
-      let { regex } = options;
-
-      const className = options.class || options.className || activeClassName;
-
-      if (typeof regex === 'string' && caseSensitive) {
-        regex = new RegExp(regex);
-      } else if (typeof regex === 'string') {
-        regex = new RegExp(regex, 'i');
-      }
-
-      if (className && typeof className !== 'string') {
-        throw new ActiveRouteBlazeError('Invalid argument, className expected to be of type string.');
-      } else if (regex && !(regex instanceof RegExp)) {
-        throw new ActiveRouteBlazeError('Invalid argument, regex expected to be of type RegExp.');
-      } else if (path && typeof path !== 'string') {
-        throw new ActiveRouteBlazeError('Invalid argument, path expected to be of type string.');
-      } else if (!regex && !path) {
-        throw new ActiveRouteBlazeError('Invalid arguments, isActivePath expects "string", path="string" or regex=RegExp');
-      }
-
-      const isActiveRoute = activeRoute.path({ path, regex });
-
-      return isActiveRoute ? className : false;
+  helperOptions = {
+    isActivePath: {
+      ...helperOptions,
+      className: activeClassName,
+      inverse: false,
+      type: 'path',
     },
-    isActiveRoute(options = {}, attributes = {}) {
-      ({ attributes, options } = getHelperArguments({ attributes, options }));
-
-      if (typeof options === 'string') {
-        options = {
-          name: options,
-        };
-      }
-
-      options = { ...options, ...attributes };
-
-      const { name } = options;
-      let { regex } = options;
-
-      const className = options.class || options.className || activeClassName;
-
-      if (typeof regex === 'string' && caseSensitive) {
-        regex = new RegExp(regex);
-      } else if (typeof regex === 'string') {
-        regex = new RegExp(regex, 'i');
-      }
-
-      if (className && typeof className !== 'string') {
-        throw new ActiveRouteBlazeError('Invalid argument, className expected to be of type string.');
-      } else if (regex && !(regex instanceof RegExp)) {
-        throw new ActiveRouteBlazeError('Invalid argument, regex expected to be of type RegExp.');
-      } else if (name && typeof name !== 'string') {
-        throw new ActiveRouteBlazeError('Invalid argument, name expected to be of type string.');
-      } else if (!name && !regex) {
-        throw new ActiveRouteBlazeError('Invalid arguments, isActiveName expects "string", name="string" or regex=RegExp');
-      }
-
-      const {
-        class: _c,
-        className: _cn,
-        data: _d,
-        regex: _r,
-        name: _n,
-        path: _p,
-        ...params
-      } = {
-        ...attributes.data,
-        ...attributes,
-      };
-
-      const isActiveRoute = activeRoute.name({ name, params, regex });
-
-      return isActiveRoute ? className : false;
+    isActiveRoute: {
+      ...helperOptions,
+      className: activeClassName,
+      inverse: false,
+      type: 'name',
     },
-    isNotActivePath(options = {}, attributes = {}) {
-      ({ attributes, options } = getHelperArguments({ attributes, options }));
-
-      if (typeof options === 'string') {
-        options = {
-          path: options,
-        };
-      }
-
-      options = { ...options, ...attributes };
-
-      const { regex, path } = options;
-
-      const className = options.class || options.className || disabledClassName;
-
-      if (className && typeof className !== 'string') {
-        throw new ActiveRouteBlazeError('Invalid argument, className expected to be of type string.');
-      } else if (regex && !(regex instanceof RegExp)) {
-        throw new ActiveRouteBlazeError('Invalid argument, regex expected to be of type RegExp.');
-      } else if (path && typeof path !== 'string') {
-        throw new ActiveRouteBlazeError('Invalid argument, path expected to be of type string.');
-      } else if (!regex && !path) {
-        throw new ActiveRouteBlazeError('Invalid arguments, isNotActivePath expects "string", path="string" or regex=RegExp');
-      }
-
-      const isActiveRoute = activeRoute.path({ path, regex });
-
-      return isActiveRoute ? false : className;
+    isNotActivePath: {
+      ...helperOptions,
+      className: disabledClassName,
+      inverse: true,
+      type: 'path',
     },
-    isNotActiveRoute(options = {}, attributes = {}) {
-      ({ attributes, options } = getHelperArguments({ attributes, options }));
+    isNotActiveRoute: {
+      ...helperOptions,
+      className: disabledClassName,
+      inverse: true,
+      type: 'name',
     },
   };
+
+  return Object.entries(helperOptions).map(createHelper).reduce(addHelper, {});
 }
 
 export function registerTemplateHelpers(options) {
