@@ -60,6 +60,52 @@ export function createTemplateHelpers({
     },
     isActiveRoute(options = {}, attributes = {}) {
       ({ attributes, options } = getHelperArguments({ attributes, options }));
+
+      if (typeof options === 'string') {
+        options = {
+          name: options,
+        };
+      }
+
+      options = { ...options, ...attributes };
+
+      const { name } = options;
+      let { regex } = options;
+
+      const className = options.class || options.className || activeClassName;
+
+      if (typeof regex === 'string' && caseSensitive) {
+        regex = new RegExp(regex);
+      } else if (typeof regex === 'string') {
+        regex = new RegExp(regex, 'i');
+      }
+
+      if (className && typeof className !== 'string') {
+        throw new ActiveRouteBlazeError('Invalid argument, className expected to be of type string.');
+      } else if (regex && !(regex instanceof RegExp)) {
+        throw new ActiveRouteBlazeError('Invalid argument, regex expected to be of type RegExp.');
+      } else if (name && typeof name !== 'string') {
+        throw new ActiveRouteBlazeError('Invalid argument, name expected to be of type string.');
+      } else if (!name && !regex) {
+        throw new ActiveRouteBlazeError('Invalid arguments, isActiveName expects "string", name="string" or regex=RegExp');
+      }
+
+      const {
+        class: _c,
+        className: _cn,
+        data: _d,
+        regex: _r,
+        name: _n,
+        path: _p,
+        ...params
+      } = {
+        ...attributes.data,
+        ...attributes,
+      };
+
+      const isActiveRoute = activeRoute.name({ name, params, regex });
+
+      return isActiveRoute ? className : false;
     },
     isNotActivePath(options = {}, attributes = {}) {
       ({ attributes, options } = getHelperArguments({ attributes, options }));
