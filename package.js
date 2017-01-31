@@ -3,7 +3,7 @@ Package.describe({
   git: 'git+https://github.com/meteor-activeroute/blaze.git',
   name: 'activeroute:blaze',
   summary: 'Blaze helper for activeroute:core',
-  version: '1.0.0-alpha.5',
+  version: '1.0.0-alpha.6',
 });
 
 Package.onUse(function onUse(api) {
